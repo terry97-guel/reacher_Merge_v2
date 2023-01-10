@@ -116,7 +116,7 @@ def main(args: DLPG_ARGS_Template):
                 if args.sample_method == "random":
                     batch = sampler.sample_random(buffer=train_buffer, batch_size = args.batch_size)
                 elif args.sample_method == "LAdpp":
-                    batch = sampler.sample_Frontier_LAdpp(train_buffer, test_buffer, test_points_number = len(test_buffer), batch_size = args.batch_size)
+                    batch = sampler.sample_Frontier_LAdpp(train_buffer, test_buffer, test_points_number = args.test_points_number, batch_size = args.batch_size)
                 else:
                     raise NameError(f"sample_method muse be one of ['random', 'LAdpp'], \n but found {args.sample_method}")
                 
@@ -153,7 +153,8 @@ def main(args: DLPG_ARGS_Template):
             
             if args.Running_Normalizer:
                 normalizer.update(rewards=batch["reward"], quadrants=batch["target_quadrant"])
-            
+                if args.WANDB: wandb.log({"Reward_Thres":normalizer.get_buffer("Running_mean").mean()},step=iteration+1)
+                
             print_log_dict(test_log_dictionary)
             
             if args.Training:
@@ -196,12 +197,13 @@ if __name__ == "__main__":
     else:
         ARGS.WANDB = False
     
+    # ARGS.runname = "DLPG_LAdpp"
+    # ARGS.sample_method = "LAdpp"
+    # main(ARGS)
+    
     ARGS.runname = "DLPG_LAdpp"
     ARGS.sample_method = "LAdpp"
+    ARGS.test_points_number = 0
     main(ARGS)
-    
-    # ARGS.runname = "DLPG_random"
-    # ARGS.sample_method = "random"
-    # main(ARGS)
 
 

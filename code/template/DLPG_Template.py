@@ -27,6 +27,7 @@ class DLPG_ARGS_Template():
     eval_batch_size:int = 500                           # Rollout number when evaluating 
     mode: int = 4                                       # Number of Clusters to measure diversity
     PLOT:bool = True                                    # Setting True saves figure.
+    test_points_number:int = 1000                       # number of test_points_number for LAdpp sampling
     
     # ENVIRONMENT
     jointlimit:Tensor = tensor([3.14, 2.22])            # Jointlimit of ReacherEnv

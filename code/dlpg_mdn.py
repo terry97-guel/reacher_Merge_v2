@@ -116,7 +116,7 @@ def main(args: DLPG_MDN_ARGS_Template):
                 if args.sample_method == "random":
                     batch = sampler.sample_random(buffer=train_buffer, batch_size = args.batch_size)
                 elif args.sample_method == "LAdpp":
-                    batch = sampler.sample_Frontier_LAdpp(train_buffer, test_buffer, test_points_number = len(test_buffer), batch_size = args.batch_size)
+                    batch = sampler.sample_Frontier_LAdpp(train_buffer, test_buffer, test_points_number = args.test_points_number, batch_size = args.batch_size)
                 else:
                     raise NameError(f"sample_method muse be one of ['random', 'LAdpp'], \n but found {args.sample_method}")
                 
@@ -175,13 +175,17 @@ if __name__ == "__main__":
         ARGS.WANDB = False
     
     
-    ARGS.runname = "DLPG_MDN_LAdpp"
+    ARGS.runname = "DLPG_MDN_LAdpp2"
     ARGS.sample_method = "LAdpp"
+    ARGS.test_points_number = 0
+    ARGS.seed = 2
     main(ARGS)
     
-    # ARGS.runname = "DLPG_MDN_random"
-    # ARGS.sample_method = "random"
-    # main(ARGS)
+    ARGS.runname = "DLPG_MDN_random"
+    ARGS.sample_method = "random"
+    ARGS.test_points_number = 0
+    
+    main(ARGS)
     
     
 
