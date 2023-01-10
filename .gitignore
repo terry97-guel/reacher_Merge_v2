@@ -1,0 +1,10 @@
+code/wandb/*
+wandb/*
+
+DLPG/*/results/*.png
+DLPG/*/weights/*.pth
+DLPG/*/results/*.yaml
+
+DLPG_MDN/*/results/*.png
+DLPG_MDN/*/weights/*.pth
+DLPG_MDN/*/results/*.yaml
