@@ -1,22 +1,17 @@
-import torch.nn as nn
-from torch.nn import Module
-
-from utils.tools import cast_tensor, get_runname
-
 from dataclasses import dataclass
-import torch
 from torch import tensor, Tensor
 
 @dataclass
-class DLPG_ARGS_Template():
+class ARGS():
+    # MODEL
+    model:str = "SAC"
+    
     # LOG
     WANDB:bool = True
     pname:str = "Reacher_Merge_v2"                      # WANDB project Name
-    runname:str = "DLPG_random"                              # WANDB runname. If unspecified, set to datetime.
+    runname:str = "SAC_Fdpp"                           # WANDB runname. If unspecified, set to datetime.
     
     # DATAIO
-    SAVE_WEIGHT_PATH: str = None                        # Path to save Weight
-    SAVE_RESULT_PATH: str = None                        # Path to args and figure
     LOAD_WEIGHTPATH:str = None                          # Path to load weight
     
     # Render
@@ -27,7 +22,7 @@ class DLPG_ARGS_Template():
     eval_batch_size:int = 500                           # Rollout number when evaluating 
     mode: int = 4                                       # Number of Clusters to measure diversity
     PLOT:bool = True                                    # Setting True saves figure.
-    test_points_number:int = 1000                       # number of test_points_number for LAdpp sampling
+    test_points_ratio:float = 1.0                       # test_points_ratio for LAdpp sampling
     
     # ENVIRONMENT
     jointlimit:Tensor = tensor([3.14, 2.22])            # Jointlimit of ReacherEnv
@@ -36,7 +31,7 @@ class DLPG_ARGS_Template():
     
     # TRAINING
     Training:bool = True                                # Training flag
-    sample_method:str = "random"                        # 'random', 'LAdpp'
+    sample_method:str = "LAdpp"                        # 'random', 'LAdpp'
     
     exploit_iteration:int = 2_000_000                      # After exploit_iteration chance of exploration reduce to 50%
     max_iterations:int = 50_000                         # Maximum iterations
@@ -45,12 +40,12 @@ class DLPG_ARGS_Template():
     batch_size: int = 128                               # Batch size
     update_every:int = 100                              # Update after given number of epochs
     lr: float = 0.005                                   # learning rate
+    tau: float = 0.005                                  # decay rate of target network
+    init_alpha:float = 0.1                              # Entropy Scale Term
+    lr_alpha:float = 3e-4                               # learning rate of alpha
     
     # Device
     device:str = "cpu"                                  # device to use
-    
-    # Normalizer
-    Running_Normalizer: bool = True
     
     # PD Controller
     Kp:float = 0.01*60                                  # Proprotional Gain of PD controller
@@ -63,29 +58,6 @@ class DLPG_ARGS_Template():
     eps_dim:int = 16
     hdim:tuple = (16,16)
     
-    # hidden_actv:str = "Tanh"
-    # loc_actv:str = "Tanh"
-    # scale_actv:str = "Sigmoid"
-    
-    Running_Mean_decay:float = 0.95    
-    n_components:int = 20
-    
     # SEED
-    random_seed:int = 1
+    random_seed:tuple = tuple(range(10))
 
-
-# %%
-
-from dataclasses import dataclass
-
-@dataclass
-class InventoryItem:
-    name: str
-    unit_price: float
-    quantity_on_hand: int = 0
-
-    def total_cost(self) -> float:
-        return self.unit_price * self.quantity_on_hand
-
-item = InventoryItem('hammers', 10.49, 12)
-print(item.total_cost())

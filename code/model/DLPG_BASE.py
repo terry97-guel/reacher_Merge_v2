@@ -9,7 +9,8 @@ from torch.distributions import Normal, Laplace, MultivariateNormal
 from utils.tools import get_linear_layer
 
 
-from template.DLPG_Template import DLPG_ARGS_Template
+from configs.template import DLPG_ARGS_Template, DLPG_MDN_ARGS_Template, SAC_ARGS_Template
+from typing import Union
 
 import copy
 
@@ -21,13 +22,12 @@ from torch.nn import Module
 ### Roll out ###
 from typing import Union
 from envs.reacherEnv import CustomReacherEnv
-from template.DLPG_Template import DLPG_ARGS_Template
 import numpy as np
 
 
 
 class DLPG_ABC_(nn.Module):
-    def __init__(self, args:DLPG_ARGS_Template):
+    def __init__(self, args:Union[DLPG_ARGS_Template, DLPG_MDN_ARGS_Template]):
         super(DLPG_ABC_,self).__init__()        
         self.args = args
         # layers
@@ -36,8 +36,9 @@ class DLPG_ABC_(nn.Module):
         self.C_Embed.weight.requires_grad_(False)
         self.set_Encoder(args)        
         self.set_Decoder(args)
+        self.set_Optimizer(args)
         
-    def set_Encoder(self, args:DLPG_ARGS_Template):
+    def set_Encoder(self, args:Union[DLPG_ARGS_Template, DLPG_MDN_ARGS_Template,]):
         self.encoder           = Encoder(
             args.anchor_dim,
             args.cdim,
@@ -48,9 +49,11 @@ class DLPG_ABC_(nn.Module):
             loc = torch.zeros(1,args.zdim).to(args.device),
             scale = torch.ones(1,args.zdim).to(args.device))
 
-    def set_Decoder(self, args:DLPG_ARGS_Template):
+    def set_Decoder(self, args:Union[DLPG_ARGS_Template, DLPG_MDN_ARGS_Template,]):
         raise NotImplementedError()
     
+    def set_Optimizer(self,args):
+        self.optimizer = torch.optim.Adam(self.parameters(),lr= args.lr)
         
     def forward(self, anchor:Tensor, quadrant:Tensor):
         raise NotImplementedError()
@@ -70,13 +73,6 @@ class DLPG_ABC_(nn.Module):
         return[0]: {sample_number} of anchors
         return[1]: failure ratio of exploiting out of joint limit
         """
-        raise NotImplementedError()
-    
-    def get_loss(self):
-        """
-        Implement Loss function
-        """
-        
         raise NotImplementedError()
     
     def get_randomachors(self):

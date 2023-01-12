@@ -3,9 +3,12 @@ import torch
 from typing import Union, Dict
 from model.DLPG import DLPG
 from model.DLPG_MDN import DLPG_MDN
-from torch.distributions import kl_divergence
+from model.SAC import SAC, get_target
 
-def DLPG_Loss(model:DLPG, batch, normalizer:Union[RunningNormalizer, WhiteningNormalizer]) -> Dict:
+from torch.distributions import kl_divergence
+from utils.tools import cast_dict_numpy
+
+def DLPG_update(model:DLPG, batch, normalizer:Union[RunningNormalizer, WhiteningNormalizer], TRAIN) -> Dict:
     anchor = torch.FloatTensor(batch['anchor'])
     target_quadrant = torch.LongTensor(batch['target_quadrant'])
     reward = torch.FloatTensor( batch['reward'])
@@ -32,7 +35,12 @@ def DLPG_Loss(model:DLPG, batch, normalizer:Union[RunningNormalizer, WhiteningNo
     
     reward_avg          = torch.mean(reward, dim=0)
     
-    
+    # Update
+    if TRAIN:
+        model.optimizer.zero_grad()
+        total_loss.backward()
+        torch.nn.utils.clip_grad_norm_(model.parameters(), 0.1)
+        model.optimizer.step()
     
     # log_dictionary
     log_dictionary = dict(
@@ -43,10 +51,10 @@ def DLPG_Loss(model:DLPG, batch, normalizer:Union[RunningNormalizer, WhiteningNo
         total_loss =total_loss,
         reward_avg = reward_avg
     )
-    return log_dictionary
+    return cast_dict_numpy(log_dictionary)
 
 
-def DLPG_MDN_Loss(model:DLPG_MDN, batch, normalizer:Union[RunningNormalizer, WhiteningNormalizer]) -> Dict:
+def DLPG_MDN_update(model:DLPG_MDN, batch, normalizer:Union[RunningNormalizer, WhiteningNormalizer], TRAIN) -> Dict:
     anchor = torch.FloatTensor(batch['anchor'])
     target_quadrant = torch.LongTensor(batch['target_quadrant'])
     reward = torch.FloatTensor( batch['reward'])
@@ -75,7 +83,12 @@ def DLPG_MDN_Loss(model:DLPG_MDN, batch, normalizer:Union[RunningNormalizer, Whi
     
     reward_avg          = torch.mean(reward, dim=0)
     
-    
+    # Update
+    if TRAIN:
+        model.optimizer.zero_grad()
+        total_loss.backward()
+        torch.nn.utils.clip_grad_norm_(model.parameters(), 0.1)
+        model.optimizer.step()
     
     # log_dictionary
     log_dictionary = dict(
@@ -86,6 +99,31 @@ def DLPG_MDN_Loss(model:DLPG_MDN, batch, normalizer:Union[RunningNormalizer, Whi
         total_loss =total_loss,
         reward_avg = reward_avg
     )
-    return log_dictionary
+    return cast_dict_numpy(log_dictionary)
 
 
+def SAC_update(model: SAC, batch, TRAIN:bool):
+    td_target = get_target(model.pi, model.q1_target, model.q2_target, batch)
+    
+    critic_loss_1 = model.q1.update(td_target, batch, TRAIN)
+    critic_loss_2 = model.q2.update(td_target, batch, TRAIN)
+    
+    actor_loss, alpha_loss = model.pi.update(model.q1, model.q2,batch, TRAIN)
+    
+    if TRAIN:
+        model.q1.soft_update(model.q1_target)
+        model.q2.soft_update(model.q2_target)
+    
+    
+    reward = torch.FloatTensor(batch['reward'])
+    reward_avg          = torch.mean(reward, dim=0)
+    
+    log_dictionary = dict(
+        actor_loss = actor_loss,
+        alpha_loss = alpha_loss,
+        critic_loss_1 = critic_loss_1,
+        critic_loss_2 = critic_loss_2,
+        reward_avg = reward_avg
+    )
+    
+    return cast_dict_numpy(log_dictionary)

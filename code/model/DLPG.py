@@ -8,7 +8,7 @@ import copy
 
 
 from model.DLPG_BASE import DLPG_ABC_
-from template.DLPG_Template import DLPG_ARGS_Template
+from configs.template import DLPG_ARGS_Template
 from model.Normalizer import RunningNormalizer, WhiteningNormalizer
 
 

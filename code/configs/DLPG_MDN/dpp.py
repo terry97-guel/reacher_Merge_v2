@@ -1,22 +1,17 @@
-import torch.nn as nn
-from torch.nn import Module
-
-from utils.tools import cast_tensor, get_runname
-
 from dataclasses import dataclass
-import torch
 from torch import tensor, Tensor
 
 @dataclass
-class DLPG_MDN_ARGS_Template():
+class ARGS():
+    # MODEL
+    model:str = "DLPG_MDN"
+    
     # LOG
     WANDB:bool = True
     pname:str = "Reacher_Merge_v2"                      # WANDB project Name
-    runname:str = "DLPG_MDN_random"                     # WANDB runname. If unspecified, set to datetime.
+    runname:str = "DLPG_dpp"                              # WANDB runname. If unspecified, set to datetime.
     
     # DATAIO
-    SAVE_WEIGHT_PATH: str = None                        # Path to save Weight
-    SAVE_RESULT_PATH: str = None                        # Path to args and figure
     LOAD_WEIGHTPATH:str = None                          # Path to load weight
     
     # Render
@@ -24,10 +19,10 @@ class DLPG_MDN_ARGS_Template():
     RENDER_EVAL:bool = False                            # Plot Evalutation with plt
 
     # EVALUTATION
-    eval_batch_size:int = 1000                          # Rollout number when evaluating 
+    eval_batch_size:int = 500                           # Rollout number when evaluating 
     mode: int = 4                                       # Number of Clusters to measure diversity
     PLOT:bool = True                                    # Setting True saves figure.
-    test_points_number:int = 1000                       # number of test_points_number for LAdpp sampling
+    test_points_ratio:float = 0.0                       # test_points_ratio for LAdpp sampling
     
     # ENVIRONMENT
     jointlimit:Tensor = tensor([3.14, 2.22])            # Jointlimit of ReacherEnv
@@ -36,9 +31,9 @@ class DLPG_MDN_ARGS_Template():
     
     # TRAINING
     Training:bool = True                                # Training flag
-    sample_method:str = "random"                        # 'random', 'LAdpp'
+    sample_method:str = "LAdpp"                        # 'random', 'LAdpp'
     
-    exploit_iteration:int = 2_000_000                     # After exploit_iteration chance of exploration reduce to 50%
+    exploit_iteration:int = 2_000_000                      # After exploit_iteration chance of exploration reduce to 50%
     max_iterations:int = 50_000                         # Maximum iterations
     
     buffer_limit: int = 10_000                          # Buffer size limit
@@ -67,5 +62,5 @@ class DLPG_MDN_ARGS_Template():
     n_components:int = 20
     
     # SEED
-    random_seed:int = 1
+    random_seed:tuple = tuple(range(10))
 

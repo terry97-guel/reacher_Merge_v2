@@ -72,12 +72,12 @@ class Sampler:
     def sample_Frontier_LAdpp(
         train_buffer:Buffer,
         test_buffer:Buffer,
-        test_points_number=128,
+        test_points_ratio=1.0,
         batch_size=128,
         train_number_ratio= 1.0,
         hyp=dict(k_gain=10.0)
         ):
-        test_points_number = min(len(test_buffer), test_points_number)
+        test_points_number = int(len(test_buffer) * test_points_ratio)
         train_points_number = max(int(len(train_buffer) * train_number_ratio), batch_size)
         
         # Concate partial data from test and  partial train data

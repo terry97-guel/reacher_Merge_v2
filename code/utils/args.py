@@ -1,4 +1,11 @@
-from template.DLPG_Template import DLPG_ARGS_Template
+def read_ARGS(path):
+    import importlib
+    spec = importlib.util.spec_from_file_location("config", path)
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+
+    ARGS = getattr(module,'ARGS')()
+    return ARGS
 
 def isPrimitive(cast_type):
     return cast_type in [int, float, str, bool]
@@ -32,10 +39,9 @@ def cast_like(cast_from, cast_to, cast_candidate):
     
     raise LookupError(f"Can not find appropriate cast_candidate for {cast_from}")
 
-
+'''
 from typing import Tuple, Union
 import yaml
-
 def Refine_OptionalArgs_to_Template(
     config_path, 
     optional, 
@@ -76,3 +82,4 @@ def Refine_OptionalArgs_to_Template(
             i = i+2
             
     return Template(**configs)
+'''
