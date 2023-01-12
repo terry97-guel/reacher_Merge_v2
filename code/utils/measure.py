@@ -34,7 +34,9 @@ def get_measure(batch, mode:int,  PLOT:bool, plot_name:Path):
         else:
             wrong_points.append(last_position)
     
-    correct_points = np.stack(correct_points)
+    if len(correct_points) == 0:
+        return {"Accuracy":.0, "Var":.0, "Converage":.0, "Accuracy_Q1":.0, "Accuracy_Q2":.0, "Accuracy_Q3":.0, "Accuracy_Q4":.0}
+    else: correct_points = np.stack(correct_points)
     
     if len(wrong_points) == 0: wrong_points = None
     else: wrong_points = np.stack(wrong_points)
