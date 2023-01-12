@@ -201,8 +201,8 @@ if __name__ == "__main__":
     BASEDIR, RUNMODE = get_BASERDIR(__file__)
 
     parser = argparse.ArgumentParser(description= 'parse for DLPG')
-    parser.add_argument("--configs", type=str, default= "SAC/random.py") # [DLPG, DLPG_MDN, SAC, PPO], [random, dpp, Fdpp]
-    args= parser.parse_args(args=[])
+    parser.add_argument("--configs", type=str) # [DLPG, DLPG_MDN, SAC, PPO], [random, dpp, Fdpp]
+    args= parser.parse_args()
 
     ARGS = read_ARGS((BASEDIR/'configs'/args.configs).absolute())
     
@@ -214,7 +214,7 @@ if __name__ == "__main__":
     shutil.copyfile((BASEDIR/'configs'/args.configs).absolute(), SAVEPATH/"args.py")
     
     for idx, seed in enumerate(ARGS.random_seed):
-        if idx == 0 and (RUNMODE is RUN) and ARGS.WANDB:
+        if seed == 0 and (RUNMODE is RUN) and ARGS.WANDB:
             ARGS.WANDB = True
         else:
             ARGS.WANDB = False
