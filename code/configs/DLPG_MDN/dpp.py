@@ -9,7 +9,7 @@ class ARGS():
     # LOG
     WANDB:bool = True
     pname:str = "Reacher_Merge_v2"                      # WANDB project Name
-    runname:str = "DLPG_dpp"                              # WANDB runname. If unspecified, set to datetime.
+    runname:str = "DLPG_MDN_dpp"                              # WANDB runname. If unspecified, set to datetime.
     
     # DATAIO
     LOAD_WEIGHTPATH:str = None                          # Path to load weight

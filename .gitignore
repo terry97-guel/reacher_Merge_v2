@@ -1,6 +1,7 @@
 code/wandb/*
 wandb/*
 
+*.*.pyc
 *.pyc
 *.png
 *.pth
