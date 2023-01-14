@@ -1,7 +1,7 @@
 from envs.reacherEnv import get_quadrant
 from matplotlib import pyplot as plt
 from utils.dataloader import Buffer, Sampler
-from utils.tools import make_circle
+from utils.tools import make_circle, cast_dict_numpy
 import numpy as np
 from pathlib import Path
 
@@ -34,7 +34,9 @@ def get_measure(batch, mode:int,  PLOT:bool, plot_name:Path):
         else:
             wrong_points.append(last_position)
     
-    correct_points = np.stack(correct_points)
+    if len(correct_points) == 0:
+        return {"Accuracy":.0, "Var":.0, "Converage":.0, "Accuracy_Q1":.0, "Accuracy_Q2":.0, "Accuracy_Q3":.0, "Accuracy_Q4":.0}
+    else: correct_points = np.stack(correct_points)
     
     if len(wrong_points) == 0: wrong_points = None
     else: wrong_points = np.stack(wrong_points)
@@ -63,7 +65,7 @@ def get_measure(batch, mode:int,  PLOT:bool, plot_name:Path):
         plot_QD_figure(correct_points, wrong_points, cluster_idxs, mode, accuracy, coverage, hulls, PLOT, plot_name)
     measure_dict.update({"Var": var, "Converage": coverage})
 
-    return measure_dict
+    return cast_dict_numpy(measure_dict)
 
 
 def plot_QD_figure(correct_points, wrong_points, cluster_idxs, mode, accuracy, coverage, hulls:tuple, PLOT:bool, plot_name:Path):
@@ -106,6 +108,7 @@ def plot_QD_figure(correct_points, wrong_points, cluster_idxs, mode, accuracy, c
     plt.text(0.10,-0.212,"Coverage:{:.2f}%".format(coverage*100), fontdict = font1)
     plt.text(0.101,-0.196,"Accuracy:{:.2f}%".format(accuracy*100), fontdict = font1)
     
+    Path(plot_name.parent).mkdir(exist_ok=True)
     if plot_name.suffix != ".png":
         plot_name = plot_name.with_suffix(".png")
     

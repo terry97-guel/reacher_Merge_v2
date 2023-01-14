@@ -9,15 +9,18 @@ from typing import Tuple, Union
 import torch
 import torch.nn as nn
 from torch.distributions import OneHotCategorical, Normal, MultivariateNormal, Laplace
-from template.DLPG_Template import DLPG_ARGS_Template
+
+from configs.template import  DLPG_MDN_ARGS_Template
+from typing import Union
+
 from model.DLPG_BASE import DLPG_ABC_
 
 
 class DLPG_MDN(DLPG_ABC_):
-    def __init__(self, args:DLPG_ARGS_Template):
+    def __init__(self, args:DLPG_MDN_ARGS_Template):
         super(DLPG_MDN,self).__init__(args)
 
-    def set_Decoder(self, args:DLPG_ARGS_Template):
+    def set_Decoder(self, args: DLPG_MDN_ARGS_Template):
         self.decoder           = MDN_Decoder(
             args.anchor_dim,
             args.cdim,

@@ -7,6 +7,15 @@ def cast_tensor(array):
     if isinstance(array, torch.Tensor): return array
     else: torch.tensor(array)
 
+def cast_numpy(tensor):
+    if isinstance(tensor, np.ndarray): return tensor
+    elif isinstance(tensor, torch.Tensor):
+        return np.array(tensor.detach().cpu())
+    else: return np.array(tensor)
+
+def cast_dict_numpy(dictionary_:dict):
+    return {key:cast_numpy(value) for key,value in dictionary_.items()}
+
 def torch2np(x_torch):
     if x_torch is None:
         x_np = None
