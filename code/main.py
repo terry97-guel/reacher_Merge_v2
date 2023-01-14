@@ -96,7 +96,7 @@ def main(args: Union[DLPG_ARGS_Template, DLPG_MDN_ARGS_Template, SAC_ARGS_Templa
                 
                 (anchor, rejection_rate), (reward,_,last_position,_) = model.rollout(env, target_quadrant, EXPLOIT, args.lentraj, args.RENDER_ROLLOUT)
                 if args.WANDB: 
-                    wandb.log({'rejection_rate':rejection_rate, 'EXPLOIT_probabilty':EXPLORE_probabilty},step=iteration+1)
+                    wandb.log({'rejection_rate':rejection_rate, 'EXPLORE_probabilty':EXPLORE_probabilty},step=iteration+1)
                 
             elif args.model == "SAC":
                 (anchor, rejection_rate), (reward,_,last_position,_) = model.rollout(env, target_quadrant, args.lentraj, args.RENDER_ROLLOUT)
@@ -195,13 +195,27 @@ def main(args: Union[DLPG_ARGS_Template, DLPG_MDN_ARGS_Template, SAC_ARGS_Templa
             if args.Training:
                 model.save(iteration+1)    # save weight
 
+def plot_batch_samples(test_buffer, batch):
+    from matplotlib import pyplot as plt
+    plt.figure()
+    plt.xlim([-0.22,0.22])
+    plt.ylim([-0.22,0.22])
+    last_position = batch['last_position']
+    plt.scatter(last_position[:,0],last_position[:,1], color = 'k', marker = 'o')
+    
+    batch = Sampler.sample_all(test_buffer)
+    last_position = batch['last_position']
+    plt.scatter(last_position[:,0],last_position[:,1], color = 'r', marker = 'x')
+    
+    plt.savefig("temp")
+
 
 
 if __name__ == "__main__":
     BASEDIR, RUNMODE = get_BASERDIR(__file__)
 
     parser = argparse.ArgumentParser(description= 'parse for DLPG')
-    parser.add_argument("--configs", type=str) # [DLPG, DLPG_MDN, SAC, PPO], [random, dpp, Fdpp]
+    parser.add_argument("--configs", default="test/DLPG_MDN.py",type=str) # [DLPG, DLPG_MDN, SAC, PPO], [random, dpp, Fdpp]
     args= parser.parse_args()
 
     ARGS = read_ARGS((BASEDIR/'configs'/args.configs).absolute())

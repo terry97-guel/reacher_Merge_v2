@@ -1,6 +1,6 @@
 # python3 main.py --configs SAC/random.py
-python3 main.py --configs SAC/dpp.py
-python3 main.py --configs SAC/Fdpp.py
+# python3 main.py --configs SAC/dpp.py
+# python3 main.py --configs SAC/Fdpp.py
 
 python3 main.py --configs DLPG/random.py
 python3 main.py --configs DLPG/dpp.py

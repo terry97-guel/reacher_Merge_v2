@@ -33,7 +33,7 @@ class ARGS():
     Training:bool = True                                # Training flag
     sample_method:str = "LAdpp"                        # 'random', 'LAdpp'
     
-    exploit_iteration:int = 2_000_000                      # After exploit_iteration chance of exploration reduce to 50%
+    exploit_iteration:int = 25_000                      # After exploit_iteration chance of exploration reduce to 50%
     max_iterations:int = 50_000                         # Maximum iterations
     
     buffer_limit: int = 10_000                          # Buffer size limit
@@ -62,5 +62,5 @@ class ARGS():
     n_components:int = 20
     
     # SEED
-    random_seed:tuple = tuple(range(10))
+    random_seed:tuple = tuple(range(1))
 

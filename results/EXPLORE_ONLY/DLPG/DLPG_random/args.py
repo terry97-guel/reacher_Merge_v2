@@ -4,12 +4,12 @@ from torch import tensor, Tensor
 @dataclass
 class ARGS():
     # MODEL
-    model:str = "SAC"
+    model:str = "DLPG"
     
     # LOG
     WANDB:bool = True
     pname:str = "Reacher_Merge_v2"                      # WANDB project Name
-    runname:str = "SAC_Fdpp"                           # WANDB runname. If unspecified, set to datetime.
+    runname:str = "DLPG_random"                              # WANDB runname. If unspecified, set to datetime.
     
     # DATAIO
     LOAD_WEIGHTPATH:str = None                          # Path to load weight
@@ -22,7 +22,7 @@ class ARGS():
     eval_batch_size:int = 500                           # Rollout number when evaluating 
     mode: int = 4                                       # Number of Clusters to measure diversity
     PLOT:bool = True                                    # Setting True saves figure.
-    test_points_ratio:float = 1.0                       # test_points_ratio for LAdpp sampling
+
     
     # ENVIRONMENT
     jointlimit:Tensor = tensor([3.14, 2.22])            # Jointlimit of ReacherEnv
@@ -31,20 +31,21 @@ class ARGS():
     
     # TRAINING
     Training:bool = True                                # Training flag
-    sample_method:str = "LAdpp"                        # 'random', 'LAdpp'
+    sample_method:str = "random"                        # 'random', 'LAdpp'
     
+    exploit_iteration:int = 2_000_000                      # After exploit_iteration chance of exploration reduce to 50%
     max_iterations:int = 50_000                         # Maximum iterations
     
     buffer_limit: int = 10_000                          # Buffer size limit
     batch_size: int = 128                               # Batch size
     update_every:int = 100                              # Update after given number of epochs
     lr: float = 0.005                                   # learning rate
-    tau: float = 0.005                                  # decay rate of target network
-    init_alpha:float = 0.1                              # Entropy Scale Term
-    lr_alpha:float = 3e-4                               # learning rate of alpha
     
     # Device
     device:str = "cpu"                                  # device to use
+    
+    # Normalizer
+    Running_Normalizer: bool = True
     
     # PD Controller
     Kp:float = 0.01*60                                  # Proprotional Gain of PD controller
@@ -57,6 +58,8 @@ class ARGS():
     eps_dim:int = 16
     hdim:tuple = (16,16)
     
+    Running_Mean_decay:float = 0.95    
+    
     # SEED
-    random_seed:tuple = tuple(range(1))
+    random_seed:tuple = tuple(range(10))
 
