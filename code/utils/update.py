@@ -127,3 +127,15 @@ def SAC_update(model: SAC, batch, TRAIN:bool):
     )
     
     return cast_dict_numpy(log_dictionary)
+
+
+def PPO_update(model, batch, TRAIN=False):
+    
+    
+    
+    
+    log_dictionary = dict(
+        
+    )
+    
+    return cast_dict_numpy

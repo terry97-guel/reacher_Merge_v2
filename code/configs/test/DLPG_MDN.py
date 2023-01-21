@@ -22,6 +22,7 @@ class ARGS():
     eval_batch_size:int = 500                           # Rollout number when evaluating 
     mode: int = 4                                       # Number of Clusters to measure diversity
     PLOT:bool = True                                    # Setting True saves figure.
+    test_points_ratio:float = 0.0                       # test_points_ratio for LAdpp sampling
 
     
     # ENVIRONMENT
@@ -31,9 +32,9 @@ class ARGS():
     
     # TRAINING
     Training:bool = True                                # Training flag
-    sample_method:str = "random"                        # 'random', 'LAdpp'
+    sample_method:str = "LAdpp"                        # 'random', 'LAdpp'
     
-    exploit_iteration:int = 2_000_000                      # After exploit_iteration chance of exploration reduce to 50%
+    exploit_iteration:int = 20_000                      # After exploit_iteration chance of exploration reduce to 50%
     max_iterations:int = 50_000                         # Maximum iterations
     
     buffer_limit: int = 10_000                          # Buffer size limit

@@ -8,8 +8,8 @@ class ARGS():
     
     # LOG
     WANDB:bool = True
-    pname:str = "Reacher_Merge_v2"                      # WANDB project Name
-    runname:str = "SAC_random"                          # WANDB runname. If unspecified, set to datetime.
+    pname:str = "Reacher_Merge_v2.1"                      # WANDB project Name
+    runname:str = "SAC_random_EX"                          # WANDB runname. If unspecified, set to datetime.
     
     # DATAIO
     LOAD_WEIGHTPATH:str = None                          # Path to load weight
@@ -58,5 +58,5 @@ class ARGS():
     hdim:tuple = (16,16)
     
     # SEED
-    random_seed:tuple = tuple(range(1))
+    random_seed:tuple = tuple(range(10))
 

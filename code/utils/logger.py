@@ -33,7 +33,7 @@ import shutil
 
 def ask_and_make_folder(path:Path):
     if path.exists():
-        print(f"Save Directory already exists! Want to delete {path.__str__()}?")
+        print(f"Save Directory already exists! Delete {path.__str__()}?")
         print("d to delete, o to override")
         delete_folder = input()
         if delete_folder == 'd':

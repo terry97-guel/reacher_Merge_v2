@@ -73,7 +73,7 @@ class ActorClass(nn.Module):
         real_anchor = torch.tanh(anchor) * self.args.jointlimit
         real_log_prob = log_prob - torch.log(1-torch.tanh(anchor).pow(2) + 1e-7)
         return real_anchor, real_log_prob
-
+    
     def update(self, q1, q2, batch, TRAIN:bool):
         s = torch.LongTensor(batch['target_quadrant']).to(self.args.device)
         a = torch.FloatTensor(batch['anchor']).to(self.args.device)

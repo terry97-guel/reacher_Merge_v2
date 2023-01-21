@@ -16,7 +16,7 @@ def get_measure(batch, mode:int,  PLOT:bool, plot_name:Path):
         key[3]: Accuracy_Q3         - Quadrant3 accuracy
         key[4]: Accuracy_Q4         - Quadrant4 accuracy
         key[5]: Var                 - Variance of last position
-        key[6]: Converage           - Converage of last position
+        key[6]: Coverage           - Coverage of last position
     }
     """
     length = len(batch['anchor'])
@@ -35,7 +35,7 @@ def get_measure(batch, mode:int,  PLOT:bool, plot_name:Path):
             wrong_points.append(last_position)
     
     if len(correct_points) == 0:
-        return {"Accuracy":.0, "Var":.0, "Converage":.0, "Accuracy_Q1":.0, "Accuracy_Q2":.0, "Accuracy_Q3":.0, "Accuracy_Q4":.0}
+        return {"Accuracy":.0, "Var":.0, "Coverage":.0, "Accuracy_Q1":.0, "Accuracy_Q2":.0, "Accuracy_Q3":.0, "Accuracy_Q4":.0}
     else: correct_points = np.stack(correct_points)
     
     if len(wrong_points) == 0: wrong_points = None
@@ -63,7 +63,7 @@ def get_measure(batch, mode:int,  PLOT:bool, plot_name:Path):
     
     if PLOT:
         plot_QD_figure(correct_points, wrong_points, cluster_idxs, mode, accuracy, coverage, hulls, PLOT, plot_name)
-    measure_dict.update({"Var": var, "Converage": coverage})
+    measure_dict.update({"Var": var, "Coverage": coverage})
 
     return cast_dict_numpy(measure_dict)
 
@@ -131,6 +131,7 @@ def measure_var_coverage(correct_points, mode):
 
     for k_ in range(mode):
         cluster_points = correct_points[cluster_idxs == k_]
+        cluster_points = np.unique(cluster_points,axis=0)
         
         if len(cluster_points) <3: 
             hulls.append(None)
