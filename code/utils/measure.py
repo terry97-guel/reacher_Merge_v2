@@ -109,11 +109,12 @@ def plot_QD_figure(correct_points, wrong_points, cluster_idxs, mode, accuracy, c
     plt.text(0.10,-0.212,"Coverage:{:.2f}%".format(coverage*100), fontdict = font1)
     plt.text(0.101,-0.196,"Accuracy:{:.2f}%".format(accuracy*100), fontdict = font1)
     
-    Path(plot_name.parent).mkdir(exist_ok=True)
-    if plot_name.suffix != ".png":
-        plot_name = plot_name.with_suffix(".png")
-    
-    plt.savefig(plot_name.__str__())
+    if plot_name is not None:
+        Path(plot_name.parent).mkdir(exist_ok=True)
+        if plot_name.suffix != ".png":
+            plot_name = plot_name.with_suffix(".png")
+        
+        plt.savefig(plot_name.__str__())
 
 def measure_var_coverage(correct_points, mode):
     from matplotlib import pyplot as plt
