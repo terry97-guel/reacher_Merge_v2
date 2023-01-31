@@ -73,6 +73,7 @@ def plot_QD_figure(correct_points, wrong_points, cluster_idxs, mode, accuracy, c
     
     for k_ in range(mode):
         cluster_points = correct_points[cluster_idxs == k_]
+        cluster_points = np.unique(cluster_points,axis=0)
         if PLOT:
             # PLOT Each Cluster
             plt.scatter(cluster_points[:,0],cluster_points[:,1], color = 'k')
