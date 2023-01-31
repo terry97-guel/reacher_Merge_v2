@@ -22,13 +22,19 @@ class Buffer:
         self.target_quadrant                     =   np.zeros([buffer_limit], dtype=np.float32)
         self.reward                              =   np.zeros([buffer_limit], dtype=np.float32)
         self.last_position                       =   np.zeros([buffer_limit, last_position_dim], dtype=np.float32)
+        self.log_p                               =   np.zeros([buffer_limit, anchor_dim], dtype=np.float32)
+        self.value                               =   np.zeros([buffer_limit], dtype=np.float32)
         self.ptr, self.size, self.buffer_limit   =   0, 0, buffer_limit 
 
-    def store(self, anchor, reward, target_quadrant, last_position):
+    def store(self, anchor, reward, target_quadrant, last_position, log_p=None, value=None):
         self.anchor[self.ptr]                = anchor
         self.target_quadrant[self.ptr]       = target_quadrant
         self.reward[self.ptr]                = reward
         self.last_position[self.ptr]         = last_position
+        if log_p is not None:
+            self.log_p[self.ptr]             = log_p
+        if value is not None:
+            self.value[self.ptr]             = value
         self.ptr                             = (self.ptr+1)%self.buffer_limit      # pointer of last saved idx
         self.size                            = min(self.size+1, self.buffer_limit) # number of instance stored
         
@@ -54,6 +60,8 @@ class Sampler:
             target_quadrant     = buffer.target_quadrant[idxs],
             reward              = buffer.reward[idxs],
             last_position       = buffer.last_position[idxs],
+            log_p               = buffer.log_p[idxs],
+            value               = buffer.value[idxs]
             )
         
         return batch

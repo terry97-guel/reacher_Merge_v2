@@ -7,6 +7,7 @@ from utils.dataloader import Buffer, Sampler
 from model.DLPG import DLPG
 from model.DLPG_MDN import DLPG_MDN
 from model.SAC import SAC
+from model.PPO import PPO
 import os
 
 from envs.reacherEnv import CustomReacherEnv
@@ -20,7 +21,7 @@ from typing import Union
 from utils.tools import set_seed, set_wandb, print_log_dict, prefix_dict
 from utils.path_handler import JUPYTER, RUN, DEBUG, get_BASERDIR
 from model.Normalizer import RunningNormalizer, WhiteningNormalizer
-from utils.update import DLPG_update, DLPG_MDN_update, SAC_update
+from utils.update import DLPG_update, DLPG_MDN_update, SAC_update, PPO_update
 from utils.args import read_ARGS
 from utils.measure import get_measure
 from utils.logger import CSVLogger,ask_and_make_folder
@@ -58,6 +59,8 @@ def main(args: Union[DLPG_ARGS_Template, DLPG_MDN_ARGS_Template, SAC_ARGS_Templa
         model = DLPG_MDN(args=args).to(args.device)
     elif args.model == "SAC":
         model = SAC(args=args).to(args.device)
+    elif args.model == "PPO":
+        model = PPO(args=args).to(args.device)
     else:
         raise LookupError(f"model should be one of ['DLPG', 'DLPG_MDN', 'SAC', 'PPO'] \n, Found {args.model}")
     
@@ -96,19 +99,25 @@ def main(args: Union[DLPG_ARGS_Template, DLPG_MDN_ARGS_Template, SAC_ARGS_Templa
                 
                 (anchor, rejection_rate), (reward,_,last_position,_) = model.rollout(env, target_quadrant, EXPLOIT, args.lentraj, args.RENDER_ROLLOUT)
                 if args.WANDB: 
-                    wandb.log({'rejection_rate':rejection_rate, 'EXPLORE_probabilty':EXPLORE_probabilty},step=iteration+1)
+                    wandb.log({'rejection_rate':rejection_rate, 'EXPLOIT_probabilty':EXPLORE_probabilty},step=iteration+1)
+                train_buffer.store(anchor, reward, target_quadrant, last_position)
                 
-            elif args.model in ["SAC", "PPO"]:
+            elif args.model == "SAC":
                 (anchor, rejection_rate), (reward,_,last_position,_) = model.rollout(env, target_quadrant, args.lentraj, args.RENDER_ROLLOUT)
                 if args.WANDB: 
                     wandb.log({'rejection_rate':rejection_rate},step=iteration+1)
-                    
+                train_buffer.store(anchor, reward, target_quadrant, last_position)
+                
+            elif args.model == "PPO":
+                (anchor, log_p, value, rejection_rate), (reward,_,last_position,_) = model.rollout(env, target_quadrant, args.lentraj, args.RENDER_ROLLOUT)
+                if args.WANDB: 
+                    wandb.log({'rejection_rate':rejection_rate},step=iteration+1)
+                train_buffer.store(anchor, reward, target_quadrant, last_position, log_p, value)
             else:
                 raise LookupError(f"model should be one of ['DLPG', 'DLPG_MDN', 'SAC', 'PPO'] \n, Found {args.model}")
                 
             pbar.set_description(
                 "Current iteration:{},  Rejection_rate:{:.2f}".format(iteration+1, rejection_rate))
-            train_buffer.store(anchor, reward, target_quadrant, last_position)
             
             
 
@@ -126,11 +135,6 @@ def main(args: Union[DLPG_ARGS_Template, DLPG_MDN_ARGS_Template, SAC_ARGS_Templa
                 else:
                     raise NameError(f"sample_method muse be one of ['random', 'LAdpp'], \n but found {args.sample_method}")
                 
-                # plot_batch_samples(test_buffer, sampler.sample_all(train_buffer), name="all")
-                # plot_batch_samples(test_buffer, sampler.sample_random(buffer=train_buffer, batch_size = args.batch_size), name='random')
-                # plot_batch_samples(test_buffer, sampler.sample_Frontier_LAdpp(train_buffer, test_buffer, test_points_ratio = 1.0, batch_size = args.batch_size, hyp=dict(k_gain=10.0) ), name = 'Fdpp')
-                # plot_batch_samples(test_buffer, sampler.sample_Frontier_LAdpp(train_buffer, test_buffer, test_points_ratio = 0.0, batch_size = args.batch_size, hyp=dict(k_gain=10.0) ))
-                
                 # Update
                 if args.model == "DLPG":
                     train_log_dictionary = DLPG_update(model, batch, normalizer, TRAIN=True)
@@ -139,7 +143,7 @@ def main(args: Union[DLPG_ARGS_Template, DLPG_MDN_ARGS_Template, SAC_ARGS_Templa
                 elif args.model == "SAC":
                     train_log_dictionary = SAC_update(model, batch, TRAIN=True)
                 elif args.model == "PPO":
-                    train_log_dictionary = PPO_update(model, batch, TRAIN = True)
+                    train_log_dictionary = PPO_update(model, batch, TRAIN=True)
                 else:
                     raise LookupError(f"model should be one of ['DLPG', 'DLPG_MDN', 'SAC', 'PPO'] \n, Found {args.model}")
                 
@@ -159,16 +163,24 @@ def main(args: Union[DLPG_ARGS_Template, DLPG_MDN_ARGS_Template, SAC_ARGS_Templa
                 # ROLL OUT
                 if args.model in ["DLPG", "DLPG_MDN"]:
                     (anchor, rejection_rate), (reward,_,last_position,_) = model.rollout(env, target_quadrant, True, args.lentraj, args.RENDER_ROLLOUT)
-                    
+                    if args.WANDB: 
+                        wandb.log({'rejection_rate':rejection_rate, 'EXPLOIT_probabilty':EXPLORE_probabilty},step=iteration+1)
+                    test_buffer.store(anchor, reward, target_quadrant, last_position)
+
                 elif args.model == "SAC":
                     (anchor, rejection_rate), (reward,_,last_position,_) = model.rollout(env, target_quadrant, args.lentraj, args.RENDER_ROLLOUT)
                     if args.WANDB: 
                         wandb.log({'rejection_rate':rejection_rate},step=iteration+1)
-                        
+                    test_buffer.store(anchor, reward, target_quadrant, last_position)
+                    
+                elif args.model == "PPO":
+                    (anchor, log_p, value, rejection_rate), (reward,_,last_position,_) = model.rollout(env, target_quadrant, args.lentraj, args.RENDER_ROLLOUT)
+                    if args.WANDB: 
+                        wandb.log({'rejection_rate':rejection_rate},step=iteration+1)
+                    test_buffer.store(anchor, reward, target_quadrant, last_position, log_p, value)
                 else:
                     raise LookupError(f"model should be one of ['DLPG', 'DLPG_MDN', 'SAC', 'PPO'] \n, Found {args.model}")
                 
-                test_buffer.store(anchor, reward, target_quadrant, last_position)
             
             batch = sampler.sample_all(buffer=test_buffer)
             
@@ -222,7 +234,7 @@ if __name__ == "__main__":
     BASEDIR, RUNMODE = get_BASERDIR(__file__)
 
     parser = argparse.ArgumentParser(description= 'parse for DLPG')
-    parser.add_argument("--configs", default="DLPG_MDN/Fdpp.py",type=str) # [DLPG, DLPG_MDN, SAC, PPO], [random, dpp, Fdpp]
+    parser.add_argument("--configs", default="PPO/random.py",type=str) # [DLPG, DLPG_MDN, SAC, PPO], [random.py, dpp.py, Fdpp.py]
     args= parser.parse_args()
 
     ARGS = read_ARGS((BASEDIR/'configs'/args.configs).absolute())

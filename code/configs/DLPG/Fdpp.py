@@ -9,7 +9,7 @@ class ARGS():
     # LOG
     WANDB:bool = True
     pname:str = "Reacher_Merge_v2.1"                      # WANDB project Name
-    runname:str = "DLPG_Fdpp_EX30k"                           # WANDB runname. If unspecified, set to datetime.
+    runname:str = "DLPG_Fdpp"                           # WANDB runname. If unspecified, set to datetime.
     
     # DATAIO
     LOAD_WEIGHTPATH:str = None                          # Path to load weight
@@ -33,7 +33,7 @@ class ARGS():
     Training:bool = True                                # Training flag
     sample_method:str = "LAdpp"                        # 'random', 'LAdpp'
     
-    exploit_iteration:int = 30_000                      # After exploit_iteration chance of exploration reduce to 50%
+    exploit_iteration:int = 200_000                      # After exploit_iteration chance of exploration reduce to 50%
     max_iterations:int = 50_000                         # Maximum iterations
     
     buffer_limit: int = 10_000                          # Buffer size limit
