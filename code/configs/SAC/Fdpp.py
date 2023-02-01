@@ -8,7 +8,7 @@ class ARGS():
     
     # LOG
     WANDB:bool = True
-    pname:str = "Reacher_Merge_v2.1"                      # WANDB project Name
+    pname:str = "Reacher_Merge_v2.2"                      # WANDB project Name
     runname:str = "SAC_Fdpp"                           # WANDB runname. If unspecified, set to datetime.
     
     # DATAIO

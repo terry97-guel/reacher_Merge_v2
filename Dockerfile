@@ -6,6 +6,7 @@ RUN apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install -y \
     apt-utils \
     build-essential \
     ca-certificates \
+    zip \
     curl \
     git \
     htop \
@@ -41,7 +42,8 @@ RUN pip3 --no-cache-dir install --upgrade \
     torchtext \
     torchsummary \
     slacker \
-    tqdm
+    tqdm \
+    wandb
 
 ARG UNAME
 ARG UID
@@ -53,6 +55,14 @@ RUN echo "${UNAME}:${UNAME}" | chpasswd
 RUN adduser ${UNAME} sudo
 RUN usermod -aG sudo ${UNAME}
 RUN gpasswd -a ${UNAME} sudo
+
+ENV LD_LIBRARY_PATH /root/.mujoco/mujoco210/bin:${LD_LIBRARY_PATH}
+ENV LD_LIBRARY_PATH /usr/local/nvidia/lib64:${LD_LIBRARY_PATH}
+
+RUN mkdir -p /root/.mujoco \
+    && wget https://mujoco.org/download/mujoco210-linux-x86_64.tar.gz -O mujoco.tar.gz \
+    && tar -xf mujoco.tar.gz -C /root/.mujoco \
+    && rm mujoco.tar.gz
 
 USER ${UNAME}
 WORKDIR /home/${UNAME}
