@@ -16,7 +16,7 @@ def get_measure(batch, mode:int,  PLOT:bool, plot_name:Path):
         key[3]: Accuracy_Q3         - Quadrant3 accuracy
         key[4]: Accuracy_Q4         - Quadrant4 accuracy
         key[5]: Var                 - Variance of last position
-        key[6]: Converage           - Converage of last position
+        key[6]: Coverage           - Coverage of last position
     }
     """
     length = len(batch['anchor'])
@@ -35,7 +35,7 @@ def get_measure(batch, mode:int,  PLOT:bool, plot_name:Path):
             wrong_points.append(last_position)
     
     if len(correct_points) == 0:
-        return {"Accuracy":.0, "Var":.0, "Converage":.0, "Accuracy_Q1":.0, "Accuracy_Q2":.0, "Accuracy_Q3":.0, "Accuracy_Q4":.0}
+        return {"Accuracy":.0, "Var":.0, "Coverage":.0, "Accuracy_Q1":.0, "Accuracy_Q2":.0, "Accuracy_Q3":.0, "Accuracy_Q4":.0}
     else: correct_points = np.stack(correct_points)
     
     if len(wrong_points) == 0: wrong_points = None
@@ -63,7 +63,7 @@ def get_measure(batch, mode:int,  PLOT:bool, plot_name:Path):
     
     if PLOT:
         plot_QD_figure(correct_points, wrong_points, cluster_idxs, mode, accuracy, coverage, hulls, PLOT, plot_name)
-    measure_dict.update({"Var": var, "Converage": coverage})
+    measure_dict.update({"Var": var, "Coverage": coverage})
 
     return cast_dict_numpy(measure_dict)
 
@@ -73,6 +73,7 @@ def plot_QD_figure(correct_points, wrong_points, cluster_idxs, mode, accuracy, c
     
     for k_ in range(mode):
         cluster_points = correct_points[cluster_idxs == k_]
+        cluster_points = np.unique(cluster_points,axis=0)
         if PLOT:
             # PLOT Each Cluster
             plt.scatter(cluster_points[:,0],cluster_points[:,1], color = 'k')
@@ -108,11 +109,12 @@ def plot_QD_figure(correct_points, wrong_points, cluster_idxs, mode, accuracy, c
     plt.text(0.10,-0.212,"Coverage:{:.2f}%".format(coverage*100), fontdict = font1)
     plt.text(0.101,-0.196,"Accuracy:{:.2f}%".format(accuracy*100), fontdict = font1)
     
-    Path(plot_name.parent).mkdir(exist_ok=True)
-    if plot_name.suffix != ".png":
-        plot_name = plot_name.with_suffix(".png")
-    
-    plt.savefig(plot_name.__str__())
+    if plot_name is not None:
+        Path(plot_name.parent).mkdir(exist_ok=True)
+        if plot_name.suffix != ".png":
+            plot_name = plot_name.with_suffix(".png")
+        
+        plt.savefig(plot_name.__str__())
 
 def measure_var_coverage(correct_points, mode):
     from matplotlib import pyplot as plt
@@ -131,6 +133,7 @@ def measure_var_coverage(correct_points, mode):
 
     for k_ in range(mode):
         cluster_points = correct_points[cluster_idxs == k_]
+        cluster_points = np.unique(cluster_points,axis=0)
         
         if len(cluster_points) <3: 
             hulls.append(None)

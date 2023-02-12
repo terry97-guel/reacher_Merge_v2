@@ -4,6 +4,8 @@ from typing import Union, Dict
 from model.DLPG import DLPG
 from model.DLPG_MDN import DLPG_MDN
 from model.SAC import SAC, get_target
+from model.PPO import PPO
+
 
 from torch.distributions import kl_divergence
 from utils.tools import cast_dict_numpy
@@ -124,6 +126,21 @@ def SAC_update(model: SAC, batch, TRAIN:bool):
         critic_loss_1 = critic_loss_1,
         critic_loss_2 = critic_loss_2,
         reward_avg = reward_avg
+    )
+    
+    return cast_dict_numpy(log_dictionary)
+
+def PPO_update(model: PPO, batch, TRAIN:bool):
+    actor_loss, critic_loss, total_loss = model.update(batch, TRAIN)
+    
+    reward = torch.FloatTensor(batch['reward'])
+    reward_avg          = torch.mean(reward, dim=0)
+    
+    log_dictionary = dict(
+        actor_loss = actor_loss,
+        critic_loss = critic_loss,
+        total_loss = total_loss,
+        reward_avg = reward_avg    
     )
     
     return cast_dict_numpy(log_dictionary)

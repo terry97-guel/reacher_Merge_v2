@@ -7,6 +7,7 @@ from utils.dataloader import Buffer, Sampler
 from model.DLPG import DLPG
 from model.DLPG_MDN import DLPG_MDN
 from model.SAC import SAC
+from model.PPO import PPO
 import os
 
 from envs.reacherEnv import CustomReacherEnv
@@ -20,7 +21,7 @@ from typing import Union
 from utils.tools import set_seed, set_wandb, print_log_dict, prefix_dict
 from utils.path_handler import JUPYTER, RUN, DEBUG, get_BASERDIR
 from model.Normalizer import RunningNormalizer, WhiteningNormalizer
-from utils.update import DLPG_update, DLPG_MDN_update, SAC_update
+from utils.update import DLPG_update, DLPG_MDN_update, SAC_update, PPO_update
 from utils.args import read_ARGS
 from utils.measure import get_measure
 from utils.logger import CSVLogger,ask_and_make_folder
@@ -58,6 +59,8 @@ def main(args: Union[DLPG_ARGS_Template, DLPG_MDN_ARGS_Template, SAC_ARGS_Templa
         model = DLPG_MDN(args=args).to(args.device)
     elif args.model == "SAC":
         model = SAC(args=args).to(args.device)
+    elif args.model == "PPO":
+        model = PPO(args=args).to(args.device)
     else:
         raise LookupError(f"model should be one of ['DLPG', 'DLPG_MDN', 'SAC', 'PPO'] \n, Found {args.model}")
     
@@ -97,18 +100,24 @@ def main(args: Union[DLPG_ARGS_Template, DLPG_MDN_ARGS_Template, SAC_ARGS_Templa
                 (anchor, rejection_rate), (reward,_,last_position,_) = model.rollout(env, target_quadrant, EXPLOIT, args.lentraj, args.RENDER_ROLLOUT)
                 if args.WANDB: 
                     wandb.log({'rejection_rate':rejection_rate, 'EXPLOIT_probabilty':EXPLORE_probabilty},step=iteration+1)
+                train_buffer.store(anchor, reward, target_quadrant, last_position)
                 
             elif args.model == "SAC":
                 (anchor, rejection_rate), (reward,_,last_position,_) = model.rollout(env, target_quadrant, args.lentraj, args.RENDER_ROLLOUT)
                 if args.WANDB: 
                     wandb.log({'rejection_rate':rejection_rate},step=iteration+1)
-                    
+                train_buffer.store(anchor, reward, target_quadrant, last_position)
+                
+            elif args.model == "PPO":
+                (anchor, log_p, value, rejection_rate), (reward,_,last_position,_) = model.rollout(env, target_quadrant, args.lentraj, args.RENDER_ROLLOUT)
+                if args.WANDB: 
+                    wandb.log({'rejection_rate':rejection_rate},step=iteration+1)
+                train_buffer.store(anchor, reward, target_quadrant, last_position, log_p, value)
             else:
                 raise LookupError(f"model should be one of ['DLPG', 'DLPG_MDN', 'SAC', 'PPO'] \n, Found {args.model}")
                 
             pbar.set_description(
                 "Current iteration:{},  Rejection_rate:{:.2f}".format(iteration+1, rejection_rate))
-            train_buffer.store(anchor, reward, target_quadrant, last_position)
             
             
 
@@ -133,6 +142,8 @@ def main(args: Union[DLPG_ARGS_Template, DLPG_MDN_ARGS_Template, SAC_ARGS_Templa
                     train_log_dictionary = DLPG_MDN_update(model, batch, normalizer, TRAIN=True)
                 elif args.model == "SAC":
                     train_log_dictionary = SAC_update(model, batch, TRAIN=True)
+                elif args.model == "PPO":
+                    train_log_dictionary = PPO_update(model, batch, TRAIN=True)
                 else:
                     raise LookupError(f"model should be one of ['DLPG', 'DLPG_MDN', 'SAC', 'PPO'] \n, Found {args.model}")
                 
@@ -154,16 +165,22 @@ def main(args: Union[DLPG_ARGS_Template, DLPG_MDN_ARGS_Template, SAC_ARGS_Templa
                     (anchor, rejection_rate), (reward,_,last_position,_) = model.rollout(env, target_quadrant, True, args.lentraj, args.RENDER_ROLLOUT)
                     if args.WANDB: 
                         wandb.log({'rejection_rate':rejection_rate, 'EXPLOIT_probabilty':EXPLORE_probabilty},step=iteration+1)
-                    
+                    test_buffer.store(anchor, reward, target_quadrant, last_position)
+
                 elif args.model == "SAC":
                     (anchor, rejection_rate), (reward,_,last_position,_) = model.rollout(env, target_quadrant, args.lentraj, args.RENDER_ROLLOUT)
                     if args.WANDB: 
                         wandb.log({'rejection_rate':rejection_rate},step=iteration+1)
-                        
+                    test_buffer.store(anchor, reward, target_quadrant, last_position)
+                    
+                elif args.model == "PPO":
+                    (anchor, log_p, value, rejection_rate), (reward,_,last_position,_) = model.rollout(env, target_quadrant, args.lentraj, args.RENDER_ROLLOUT)
+                    if args.WANDB: 
+                        wandb.log({'rejection_rate':rejection_rate},step=iteration+1)
+                    test_buffer.store(anchor, reward, target_quadrant, last_position, log_p, value)
                 else:
                     raise LookupError(f"model should be one of ['DLPG', 'DLPG_MDN', 'SAC', 'PPO'] \n, Found {args.model}")
                 
-                test_buffer.store(anchor, reward, target_quadrant, last_position)
             
             batch = sampler.sample_all(buffer=test_buffer)
             
@@ -174,6 +191,8 @@ def main(args: Union[DLPG_ARGS_Template, DLPG_MDN_ARGS_Template, SAC_ARGS_Templa
                 test_log_dictionary = DLPG_MDN_update(model, batch, normalizer, TRAIN=False)
             elif args.model == "SAC":
                 test_log_dictionary = SAC_update(model, batch, TRAIN=False)
+            elif args.model == "PPO":
+                test_log_dictionary = PPO_update(model, batch, TRAIN=False)
             else:
                 raise LookupError(f"model should be one of ['DLPG', 'DLPG_MDN', 'SAC', 'PPO'] \n, Found {args.model}")
             
@@ -195,13 +214,27 @@ def main(args: Union[DLPG_ARGS_Template, DLPG_MDN_ARGS_Template, SAC_ARGS_Templa
             if args.Training:
                 model.save(iteration+1)    # save weight
 
+def plot_batch_samples(test_buffer, batch, name="temp"):
+    from matplotlib import pyplot as plt
+    plt.figure()
+    plt.xlim([-0.22,0.22])
+    plt.ylim([-0.22,0.22])
+    last_position = batch['last_position']
+    plt.scatter(last_position[:,0],last_position[:,1], color = 'k', marker = 'o')
+    
+    batch = Sampler.sample_all(test_buffer)
+    last_position = batch['last_position']
+    plt.scatter(last_position[:,0],last_position[:,1], color = 'r', marker = 'x')
+    
+    plt.savefig(name)
+
 
 
 if __name__ == "__main__":
     BASEDIR, RUNMODE = get_BASERDIR(__file__)
 
     parser = argparse.ArgumentParser(description= 'parse for DLPG')
-    parser.add_argument("--configs", type=str) # [DLPG, DLPG_MDN, SAC, PPO], [random, dpp, Fdpp]
+    parser.add_argument("--configs", default="PPO/random.py",type=str) # [DLPG, DLPG_MDN, SAC, PPO], [random.py, dpp.py, Fdpp.py]
     args= parser.parse_args()
 
     ARGS = read_ARGS((BASEDIR/'configs'/args.configs).absolute())

@@ -8,7 +8,7 @@ class ARGS():
     
     # LOG
     WANDB:bool = True
-    pname:str = "Reacher_Merge_v2"                      # WANDB project Name
+    pname:str = "Reacher_Merge_v2.2"                      # WANDB project Name
     runname:str = "SAC_random"                          # WANDB runname. If unspecified, set to datetime.
     
     # DATAIO
@@ -33,7 +33,6 @@ class ARGS():
     Training:bool = True                                # Training flag
     sample_method:str = "random"                        # 'random', 'LAdpp'
     
-    exploit_iteration:int = 2_000_000                      # After exploit_iteration chance of exploration reduce to 50%
     max_iterations:int = 50_000                         # Maximum iterations
     
     buffer_limit: int = 10_000                          # Buffer size limit
